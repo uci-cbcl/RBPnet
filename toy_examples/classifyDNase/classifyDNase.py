@@ -4,7 +4,10 @@ from optparse import OptionParser
 import numpy as np
 
 from keras.models import Sequential
-from keras.layers import Convolution1D
+# added missing imports
+from keras.layers import Convolution1D, MaxPooling1D, Flatten, Dense
+
+np.random.seed(1337)#random seed for reproducibility
 
 def getOptions():
     parser = OptionParser()
@@ -32,19 +35,25 @@ def main():
     
     # Convert seqs to one hot
     peakSeqs.extend(randSeqs)
-    x_train = seqsToOneHot(peakSeqs)     
-    y_train = np.array(([1]*n).extend([0]*n))
+    x_train = seqsToOneHot(peakSeqs)
+    list_labels = ([1]*n)
+    list_labels.extend([0]*n)     
+    y_train = np.array(list_labels)
 
     # Sequence classification with cnn
     wid = max(len(w) for w in peakSeqs)
     model = Sequential() 
-    model.add(Convolution1D(64, 3, border_mode='same', input_dim=(4, wid)))
+    # increased motif size from 3 to 30. input_dim was incorrectly set to (4, wid)
+    model.add(Convolution1D(64, 30, border_mode='valid', input_length=wid, input_dim=4))
     model.add(MaxPooling1D(pool_length = 15))
     model.add(Dense(100, activation = 'relu'))
-    model.add(Dense(1, activation = 'signmoid'))
-
-    model.compile(optimizer='adam', loss='binary_crossentropy')
-    model.fit(x_train, y_train, nb_epoch = 5, batch_size = 30)
+    # added Flatten layer
+    model.add(Flatten())
+    model.add(Dense(1, activation = 'sigmoid'))
+    # added accuracy metric
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    # set shuffle to True
+    model.fit(x_train, y_train, nb_epoch = 5, batch_size = 30, shuffle=True)
  
 
 def getAllSeqs(bedRegions, fa):
