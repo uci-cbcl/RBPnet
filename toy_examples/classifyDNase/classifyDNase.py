@@ -49,6 +49,7 @@ def main():
     model.add(Dense(100, activation = 'relu'))
     # added Flatten layer
     model.add(Flatten())
+    # sigmoid was misspelled
     model.add(Dense(1, activation = 'sigmoid'))
     # added accuracy metric
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
