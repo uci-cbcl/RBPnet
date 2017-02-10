@@ -15,6 +15,8 @@ def getOptions():
                       metavar = "FILE", type = "string", default = "")
     parser.add_option("--fa", dest = "fasta",
                       help = "reference genome in .fa format", metavar = "FILE", type = "string", default = "")
+    parser.add_option("--exclude", dest = "exclude",
+                      help = "BED file of genomic regons to be excluded when shuffling peaks (optional)", metavar = "FILE", type = "string", default = "")
     (options, args) = parser.parse_args()
     return options
 
@@ -23,9 +25,14 @@ def main():
 
     bed = options.bed
     genome = options.fasta
+    exclude = options.exclude
 
     peaks = pybedtools.BedTool(bed)
-    rand = peaks.shuffle(genome='hg19', chrom = True, noOverlapping = True, seed = 1)
+    if exclude == "":
+        rand = peaks.shuffle(genome='hg38', chrom = True, noOverlapping = True, seed = 1)
+    else:
+        rand = peaks.shuffle(genome='hg38', chrom = True, noOverlapping = True, seed = 1, excl = exclude)
+
     fa = Fasta(genome)    
 
     # Put sequences into list
